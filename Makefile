@@ -34,12 +34,12 @@ ifeq ($(OS),NetBSD)
 DEFAULT_CFLAGS += -D_NETBSD_SOURCE
 endif
 
-DEFAULT_CFLAGS += -Iinclude/
+DEFAULT_CFLAGS += -Iinclude/ 
 
 PKG_CONFIG ?= pkg-config
 
 # Tools useful on host and target
-TOOLS = sunxi-fexc sunxi-bootinfo sunxi-fel sunxi-nand-part sunxi-pio
+TOOLS = sunxi-fexc sunxi-bootinfo sunxi-fel sunxi-autofel sunxi-nand-part sunxi-pio
 
 # Symlinks to sunxi-fexc
 FEXC_LINKS = bin2fex fex2bin
@@ -139,9 +139,14 @@ HOST_CFLAGS = $(DEFAULT_CFLAGS) $(CFLAGS)
 PROGRESS := progress.c progress.h
 SOC_INFO := soc_info.c soc_info.h
 FEL_LIB  := fel_lib.c fel_lib.h
+AUTOFEL_LIB := autofel_lib.c fel_lib.h
 SPI_FLASH:= fel-spiflash.c fel-spiflash.h fel-remotefunc-spi-data-transfer.h
 
 sunxi-fel: fel.c fit_image.c thunks/fel-to-spl-thunk.h $(PROGRESS) $(SOC_INFO) $(FEL_LIB) $(SPI_FLASH)
+	$(CC) $(HOST_CFLAGS) $(LIBUSB_CFLAGS) $(ZLIB_CFLAGS) $(LDFLAGS) -o $@ \
+		$(filter %.c,$^) $(LIBS) $(LIBUSB_LIBS) $(ZLIB_LIBS) -lfdt
+
+sunxi-autofel: autofel.c fit_image.c thunks/fel-to-spl-thunk.h $(PROGRESS) $(SOC_INFO) $(AUTOFEL_LIB) $(SPI_FLASH)
 	$(CC) $(HOST_CFLAGS) $(LIBUSB_CFLAGS) $(ZLIB_CFLAGS) $(LDFLAGS) -o $@ \
 		$(filter %.c,$^) $(LIBS) $(LIBUSB_LIBS) $(ZLIB_LIBS) -lfdt
 
